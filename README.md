@@ -1,12 +1,12 @@
 # Shared Expenses App
 
-A MERN stack application built to track shared expenses, handle varying splits, calculate balances, and seamlessly import complex CSV data with anomaly detection.
+A PERN stack application built to track shared expenses, handle varying splits, calculate balances, and seamlessly import complex CSV data with anomaly detection.
 
 ## Setup Instructions
 
 ### Prerequisites
 - Node.js (v18+)
-- MongoDB Atlas account (or local MongoDB)
+- PostgreSQL Database (Local or Hosted)
 - Git
 
 ### Backend Setup
@@ -40,7 +40,7 @@ A MERN stack application built to track shared expenses, handle varying splits, 
 ## Architecture & Deployment
 - **Frontend**: React (Vite), TailwindCSS, deployed to Vercel.
 - **Backend**: Node.js, Express, deployed to Render.
-- **Database**: MongoDB, hosted on MongoDB Atlas.
+- **Database**: PostgreSQL (via Sequelize ORM).
 
 ## AI Used
 Developed with the assistance of Gemini 3.1 Pro via Antigravity IDE. See `AI_USAGE.md` for details.

@@ -18,38 +18,57 @@
 14. **Old Member in Split**: Line 36. Handled via Group model tracking `leftAt` dates.
 15. **Conflicting Split Type**: Line 42 (Equal vs Shares). Shares prioritized.
 
-## Database Schema (Mongoose)
+## Database Schema (PostgreSQL)
 
-### User
-- \`_id\`: ObjectId
-- \`name\`: String
-- \`email\`: String (Optional)
-- \`createdAt\`: Date
+### Users Table
+- \`id\`: UUID (PK)
+- \`name\`: VARCHAR
+- \`email\`: VARCHAR (Nullable)
+- \`createdAt\`: TIMESTAMP
+- \`updatedAt\`: TIMESTAMP
 
-### Group
-- \`_id\`: ObjectId
-- \`name\`: String
-- \`members\`: Array [{ \`user\`: ObjectId, \`joinedAt\`: Date, \`leftAt\`: Date }]
-- \`createdBy\`: ObjectId
+### Groups Table
+- \`id\`: UUID (PK)
+- \`name\`: VARCHAR
+- \`createdById\`: UUID (FK -> Users.id)
+- \`createdAt\`: TIMESTAMP
+- \`updatedAt\`: TIMESTAMP
 
-### Expense
-- \`_id\`: ObjectId
-- \`group\`: ObjectId
-- \`date\`: Date
-- \`description\`: String
-- \`paidBy\`: ObjectId
-- \`amount\`: Number
-- \`currency\`: String
-- \`originalAmount\`: Number
-- \`splitType\`: Enum ['equal', 'exact', 'percentage', 'share']
-- \`splits\`: Array [{ \`user\`: ObjectId, \`amount\`: Number, \`percentage\`: Number, \`share\`: Number }]
-- \`notes\`: String
+### GroupMembers Table
+- \`groupId\`: UUID (FK -> Groups.id)
+- \`userId\`: UUID (FK -> Users.id)
+- \`joinedAt\`: TIMESTAMP
+- \`leftAt\`: TIMESTAMP
 
-### Settlement
-- \`_id\`: ObjectId
-- \`group\`: ObjectId
-- \`date\`: Date
-- \`paidBy\`: ObjectId
-- \`paidTo\`: ObjectId
-- \`amount\`: Number
-- \`notes\`: String
+### Expenses Table
+- \`id\`: UUID (PK)
+- \`groupId\`: UUID (FK -> Groups.id)
+- \`date\`: TIMESTAMP
+- \`description\`: VARCHAR
+- \`paidById\`: UUID (FK -> Users.id)
+- \`amount\`: DECIMAL(10, 2)
+- \`currency\`: VARCHAR (Default 'INR')
+- \`originalAmount\`: DECIMAL(10, 2) (Nullable)
+- \`splitType\`: ENUM ('equal', 'exact', 'percentage', 'share')
+- \`notes\`: TEXT (Nullable)
+- \`createdAt\`: TIMESTAMP
+- \`updatedAt\`: TIMESTAMP
+
+### ExpenseSplits Table
+- \`id\`: UUID (PK)
+- \`expenseId\`: UUID (FK -> Expenses.id)
+- \`userId\`: UUID (FK -> Users.id)
+- \`amount\`: DECIMAL(10, 2)
+- \`percentage\`: DECIMAL(5, 2) (Nullable)
+- \`share\`: DECIMAL(10, 2) (Nullable)
+
+### Settlements Table
+- \`id\`: UUID (PK)
+- \`groupId\`: UUID (FK -> Groups.id) (Nullable)
+- \`date\`: TIMESTAMP
+- \`paidById\`: UUID (FK -> Users.id)
+- \`paidToId\`: UUID (FK -> Users.id)
+- \`amount\`: DECIMAL(10, 2)
+- \`notes\`: TEXT (Nullable)
+- \`createdAt\`: TIMESTAMP
+- \`updatedAt\`: TIMESTAMP

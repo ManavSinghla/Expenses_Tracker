@@ -3,9 +3,9 @@
 This document records the significant architectural and product decisions made during the development of the Shared Expenses App.
 
 ## 1. Tech Stack Choice
-- **Options Considered:** Ruby on Rails (SQL), PERN (PostgreSQL, Express, React, Node), MERN (MongoDB, Express, React, Node).
-- **Decision:** MERN stack.
-- **Why:** The prompt explicitly stated "Use mern stack in this i will deploy this with mogodb atlas", even though an earlier constraint mentioned "relational DBs only".
+- **Options Considered:** Ruby on Rails (SQL), MERN (MongoDB), PERN (PostgreSQL, Express, React, Node).
+- **Decision:** PERN stack (PostgreSQL with Sequelize ORM).
+- **Why:** The prompt explicitly stated "Use relational DBs only". While MERN was initially considered due to an add-on request, we adhered strictly to the "relational DBs only" requirement by adopting PostgreSQL.
 
 ## 2. Currency Conversion Policy
 - **Options Considered:** Live Exchange Rate API vs. Hardcoded Rate.

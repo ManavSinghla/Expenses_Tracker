@@ -1,8 +1,8 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/index.js';
+import { sequelize } from './models/index.js';
 
 dotenv.config();
 
@@ -13,14 +13,18 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+// Connect to PostgreSQL via Sequelize
 const connectDB = async () => {
     try {
-        const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/expenses_app';
-        await mongoose.connect(uri);
-        console.log('MongoDB connected successfully');
+        await sequelize.authenticate();
+        console.log('PostgreSQL connected successfully via Sequelize');
+        
+        // Sync models (creates tables if they don't exist in DB)
+        // Note: force: false is used so we don't drop existing tables in production
+        await sequelize.sync({ force: false });
+        console.log('Database synced');
     } catch (error) {
-        console.error('MongoDB connection error:', error);
+        console.error('PostgreSQL connection error:', error);
         process.exit(1);
     }
 };
@@ -31,7 +35,7 @@ connectDB();
 app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Shared Expenses API is running');
+    res.send('Shared Expenses API is running with PostgreSQL');
 });
 
 // Global error handler

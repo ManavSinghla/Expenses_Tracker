@@ -1,56 +1,42 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-const splitSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    amount: {
-        type: Number, // Computed exact amount for this user
-        required: true
-    },
-    // Optional details for specific split types
-    percentage: Number,
-    share: Number
-}, { _id: false });
+const Expense = sequelize.define('Expense', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  currency: {
+    type: DataTypes.STRING,
+    defaultValue: 'INR',
+  },
+  originalAmount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  splitType: {
+    type: DataTypes.ENUM('equal', 'exact', 'percentage', 'share'),
+    allowNull: false,
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  }
+}, {
+  timestamps: true,
+});
 
-const expenseSchema = new mongoose.Schema({
-    group: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group',
-        required: true
-    },
-    date: {
-        type: Date,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    paidBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    amount: {
-        type: Number,
-        required: true
-    },
-    currency: {
-        type: String,
-        default: 'INR'
-    },
-    originalAmount: Number, // If currency was USD
-    splitType: {
-        type: String,
-        enum: ['equal', 'exact', 'percentage', 'share'],
-        required: true
-    },
-    splits: [splitSchema],
-    notes: String
-}, { timestamps: true });
-
-export default mongoose.model('Expense', expenseSchema);
+export default Expense;

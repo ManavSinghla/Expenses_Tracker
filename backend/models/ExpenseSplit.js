@@ -1,26 +1,26 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const Settlement = sequelize.define('Settlement', {
+const ExpenseSplit = sequelize.define('ExpenseSplit', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
   amount: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
-  notes: {
-    type: DataTypes.TEXT,
+  percentage: {
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: true,
+  },
+  share: {
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   }
 }, {
-  timestamps: true,
+  timestamps: false,
 });
 
-export default Settlement;
+export default ExpenseSplit;
