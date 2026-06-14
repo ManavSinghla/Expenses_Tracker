@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── User & Authentication ──────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  groupsCreated  Group[]         @relation("GroupCreator")
+  memberships    GroupMember[]
+  expensesPaid   Expense[]       @relation("ExpensePayer")
+  expenseSplits  ExpenseSplit[]
+  paymentsFrom   Settlement[]    @relation("SettlementPayer")
+  paymentsTo     Settlement[]    @relation("SettlementPayee")
+}
+
+// ── Groups ─────────────────────────────────────────────────────
+
+model Group {
+  id             String   @id @default(uuid())
+  name           String
+  defaultCurrency String  @default("INR")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdById    String
+
+  // Relations
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id])
+  members     GroupMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+  importReports ImportReport[]
+}
+
+// ── Group Membership (supports join/leave dates) ───────────────
+
+model GroupMember {
+  id       String    @id @default(uuid())
+  groupId  String
+  userId   String
+  role     String    @default("member") // "admin" | "member"
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId, joinedAt])
+}
+
+// ── Expenses ───────────────────────────────────────────────────
+
+model Expense {
+  id              String   @id @default(uuid())
+  groupId         String
+  description     String
+  amount          Float
+  currency        String   @default("INR")
+  convertedAmount Float?   // Amount in group's default currency
+  exchangeRate    Float?   // Exchange rate used for conversion
+  date            DateTime
+  paidById        String
+  splitType       String   // "equal" | "unequal" | "percentage" | "share"
+  notes           String?
+  isSettlement    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  group  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy User           @relation("ExpensePayer", fields: [paidById], references: [id])
+  splits ExpenseSplit[]
+}
+
+// ── Expense Splits (how each expense is divided) ───────────────
+
+model ExpenseSplit {
+  id         String @id @default(uuid())
+  expenseId  String
+  userId     String
+  amount     Float  // Actual amount owed by this user
+  percentage Float? // Percentage share (for percentage splits)
+  shares     Int?   // Number of shares (for share-based splits)
+
+  // Relations
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([expenseId, userId])
+}
+
+// ── Settlements (debt payments between users) ──────────────────
+
+model Settlement {
+  id       String   @id @default(uuid())
+  groupId  String
+  payerId  String   // Person paying
+  payeeId  String   // Person receiving
+  amount   Float
+  currency String   @default("INR")
+  date     DateTime
+  notes    String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payer User  @relation("SettlementPayer", fields: [payerId], references: [id])
+  payee User  @relation("SettlementPayee", fields: [payeeId], references: [id])
+}
+
+// ── Import Reports (CSV import tracking) ───────────────────────
+
+model ImportReport {
+  id         String   @id @default(uuid())
+  groupId    String
+  filename   String
+  totalRows  Int
+  imported   Int      @default(0)
+  skipped    Int      @default(0)
+  errors     Int      @default(0)
+  warnings   Int      @default(0)
+  status     String   @default("pending") // "pending" | "reviewing" | "completed"
+  createdAt  DateTime @default(now())
+
+  // Relations
+  group     Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  anomalies ImportAnomaly[]
+}
+
+// ── Import Anomalies (individual issues found during CSV import) ─
+
+model ImportAnomaly {
+  id             String  @id @default(uuid())
+  importReportId String
+  rowNumber      Int
+  field          String?
+  type           String  // "error" | "warning" | "info" | "auto_corrected"
+  description    String
+  originalValue  String?
+  correctedValue String?
+  action         String  // "skipped" | "auto_corrected" | "needs_review" | "imported"
+  userApproved   Boolean?
+
+  // Relations
+  importReport ImportReport @relation(fields: [importReportId], references: [id], onDelete: Cascade)
+}
+
+// ── Exchange Rates ─────────────────────────────────────────────
+
+model ExchangeRate {
+  id            String   @id @default(uuid())
+  fromCurrency  String
+  toCurrency    String
+  rate          Float
+  effectiveDate DateTime @default(now())
+
+  @@unique([fromCurrency, toCurrency])
+}
